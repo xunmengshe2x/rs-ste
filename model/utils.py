@@ -1,5 +1,48 @@
 import torch
 import torch.nn as nn
+import logging
+import os
+
+def get_logger(name, rank=0):
+    """
+    Create a logger for the specified name.
+    
+    Args:
+        name (str): Logger name
+        rank (int, optional): Process rank for distributed training. Defaults to 0.
+        
+    Returns:
+        logging.Logger: Configured logger instance
+    """
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO if rank == 0 else logging.WARNING)
+    
+    # Create console handler
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO if rank == 0 else logging.WARNING)
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    
+    # Add handler to logger
+    logger.addHandler(ch)
+    
+    return logger
+
+def log_config(config, logger=None):
+    """
+    Log configuration parameters.
+    
+    Args:
+        config: Configuration object or dictionary
+        logger (logging.Logger, optional): Logger to use. If None, print to stdout.
+    """
+    config_str = str(config)
+    if logger is not None:
+        logger.info(f"Configuration:\n{config_str}")
+    else:
+        print(f"Configuration:\n{config_str}")
 
 class StrLabelConverter(object):
     def __init__(self, alphabet, max_text_len, start_id):
@@ -28,7 +71,6 @@ class StrLabelConverter(object):
                         new_text+= c
                 text = [self.dict[char] for char in new_text]
             length = min(len(text), self.max_text_len)
-
             text = text[:self.max_text_len]
             text = text + [self.pad_id] * (self.max_text_len - length)
             return text, length
@@ -40,7 +82,6 @@ class StrLabelConverter(object):
                 t, l = self.encode(t)
                 rec.append(t)
                 length.append(l)
-
             return torch.tensor(rec), length
     
     def decode(self, t,  scires=None):
@@ -59,8 +100,6 @@ class StrLabelConverter(object):
             for i in range(t.shape[0]):
                 results.append(self.decode(t[i]))
             return results
-
-
 class ActNorm(nn.Module):
     def __init__(self, num_features, logdet=False, affine=True,
                  allow_reverse_init=False):
@@ -70,9 +109,7 @@ class ActNorm(nn.Module):
         self.loc = nn.Parameter(torch.zeros(1, num_features, 1, 1))
         self.scale = nn.Parameter(torch.ones(1, num_features, 1, 1))
         self.allow_reverse_init = allow_reverse_init
-
         self.register_buffer('initialized', torch.tensor(0, dtype=torch.uint8))
-
     def initialize(self, input):
         with torch.no_grad():
             flatten = input.permute(1, 0, 2, 3).contiguous().view(input.shape[1], -1)
@@ -90,10 +127,8 @@ class ActNorm(nn.Module):
                 .unsqueeze(3)
                 .permute(1, 0, 2, 3)
             )
-
             self.loc.data.copy_(-mean)
             self.scale.data.copy_(1 / (std + 1e-6))
-
     def forward(self, input, reverse=False):
         if reverse:
             return self.reverse(input)
@@ -102,26 +137,19 @@ class ActNorm(nn.Module):
             squeeze = True
         else:
             squeeze = False
-
         _, _, height, width = input.shape
-
         if self.training and self.initialized.item() == 0:
             self.initialize(input)
             self.initialized.fill_(1)
-
         h = self.scale * (input + self.loc)
-
         if squeeze:
             h = h.squeeze(-1).squeeze(-1)
-
         if self.logdet:
             log_abs = torch.log(torch.abs(self.scale))
             logdet = height*width*torch.sum(log_abs)
             logdet = logdet * torch.ones(input.shape[0]).to(input)
             return h, logdet
-
         return h
-
     def reverse(self, output):
         if self.training and self.initialized.item() == 0:
             if not self.allow_reverse_init:
@@ -132,15 +160,12 @@ class ActNorm(nn.Module):
             else:
                 self.initialize(output)
                 self.initialized.fill_(1)
-
         if len(output.shape) == 2:
             output = output[:,:,None,None]
             squeeze = True
         else:
             squeeze = False
-
         h = output / self.scale - self.loc
-
         if squeeze:
             h = h.squeeze(-1).squeeze(-1)
         return h
