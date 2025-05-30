@@ -5,7 +5,7 @@ from fastapi import Request
 
 # Define a custom image with all dependencies
 image = modal.Image.debian_slim().pip_install(
-    "numpy==1.19.2",
+    "numpy>=1.21.0",  # Updated to be compatible with Python 3.10
     "Pillow==9.5.0",
     "torchmetrics==0.5",
     "albumentations==0.4.3",
