@@ -19,7 +19,11 @@ image = modal.Image.debian_slim().pip_install(
     "torchvision",
     "fastapi[standard]",  # Required for web endpoints
     "pydantic>=2.0.0",    # Explicitly add Pydantic
-    "typing-extensions"   # Often needed with Pydantic
+    "typing-extensions",  # Often needed with Pydantic
+    "einops",            # Required by model/decoder.py
+    "ftfy",              # Common dependency for text processing
+    "regex",             # Common dependency for text processing
+    "transformers"       # Common dependency for transformer models
 )
 
 # Add CUDA support, ffmpeg, wget, and git
@@ -265,7 +269,8 @@ async def inference_api_with_file(request: Request):
                             "data/" in value or 
                             value.endswith(".txt") or 
                             value.endswith(".pkl") or 
-                            value.endswith(".yaml")
+                            value.endswith(".yaml") or
+                            value.endswith(".ckpt")
                         ):
                             # Check if it's a relative path
                             if not value.startswith("/"):
@@ -281,7 +286,8 @@ async def inference_api_with_file(request: Request):
                             "data/" in item or 
                             item.endswith(".txt") or 
                             item.endswith(".pkl") or 
-                            item.endswith(".yaml")
+                            item.endswith(".yaml") or
+                            item.endswith(".ckpt")
                         ):
                             # Check if it's a relative path
                             if not item.startswith("/"):
