@@ -462,6 +462,9 @@ def log_config(config, logger=None):
                     
                     # Try importing again
                     from main import instantiate_from_config, get_obj_from_str
+        except Exception as e:
+            logger.error(f"Error importing modules: {str(e)}")
+            return {"error": f"Error importing modules: {str(e)}"}
         
         # Load configs
         decoder_config = OmegaConf.load("/checkpoints/RS-STE/configs/vqgan_decoder.yaml")
