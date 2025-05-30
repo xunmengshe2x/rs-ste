@@ -24,8 +24,9 @@ image = modal.Image.debian_slim().pip_install(
     "ftfy",              # Common dependency for text processing
     "regex",             # Common dependency for text processing
     "transformers"       # Common dependency for transformer models
+    
 )
-
+#KEEP THE PAIN FRESH
 # Add CUDA support, ffmpeg, wget, and git
 image = image.apt_install("ffmpeg", "wget", "git")
 
