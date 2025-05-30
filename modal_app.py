@@ -126,6 +126,7 @@ def run_inference(
     # Debug: Check if the input image file exists
     if not os.path.exists(local_image_path):
         logger.error(f"Input image file does not exist: {local_image_path}")
+        logger.error(f"Directory contents: {os.listdir(os.path.dirname(local_image_path))}")
         raise FileNotFoundError(f"Input image file does not exist: {local_image_path}")
 
     # Set up output path
@@ -250,6 +251,11 @@ async def inference_api_with_file(request: Request):
     """Web endpoint for RS-STE inference with direct file upload."""
     import base64
     import os
+    import logging
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
     # Parse the request body
     data = await request.json()
@@ -270,16 +276,36 @@ async def inference_api_with_file(request: Request):
     # Create a file for the input image
     image_path = os.path.join(inputs_dir, "input_image.png")
 
-    with open(image_path, "wb") as temp_file:
-        temp_file.write(base64.b64decode(image_base64))
-
-    # Run inference
-    output_data = run_inference.remote(image_path, text_prompt, is_url=False)
-
-    # Encode the output as base64
-    encoded_output = base64.b64encode(output_data).decode("utf-8")
-
-    return {"image_base64": encoded_output}
+    # Decode and save the image
+    try:
+        image_data = base64.b64decode(image_base64)
+        with open(image_path, "wb") as temp_file:
+            temp_file.write(image_data)
+            temp_file.flush()
+            os.fsync(temp_file.fileno())  # Ensure data is written to disk
+        
+        # Verify the file was written
+        if not os.path.exists(image_path):
+            logger.error(f"Failed to write image file: {image_path}")
+            return {"error": "Failed to write image file"}
+        
+        file_size = os.path.getsize(image_path)
+        logger.info(f"Image file written: {image_path}, size: {file_size} bytes")
+        logger.info(f"Directory contents: {os.listdir(inputs_dir)}")
+        
+        # Run inference with the local file path
+        output_data = run_inference.remote(image_path, text_prompt, is_url=False)
+        
+        # Encode the output as base64
+        encoded_output = base64.b64encode(output_data).decode("utf-8")
+        
+        return {"image_base64": encoded_output}
+    
+    except Exception as e:
+        logger.error(f"Error processing image: {str(e)}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {"error": f"Error processing image: {str(e)}"}
 
 # Define a health check endpoint
 @app.function()
