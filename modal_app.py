@@ -31,103 +31,6 @@ volume = modal.Volume.from_name("rs-ste-models", create_if_missing=True)
 # Create a Modal app
 app = modal.App("rs-ste-inference", image=image)
 
-@app.function(
-    gpu="A10G",  # You can change this to "T4", "A100", etc. based on your needs
-    timeout=600,  # 10-minute timeout
-    volumes={"/checkpoints": volume}
-)
-def download_checkpoint():
-    """Download RS-STE checkpoint from Hugging Face to the volume."""
-    import os
-    import subprocess
-
-    # Create checkpoints directory if it doesn't exist
-    os.makedirs("/checkpoints", exist_ok=True)
-
-    # Check if checkpoint is already downloaded
-    if os.path.exists("/checkpoints/rsste-finetune.ckpt"):
-        print("Checkpoint already downloaded.")
-        return
-
-    # Download the checkpoint from Hugging Face
-    checkpoint_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/rsste-finetune.ckpt"
-    subprocess.run(f"wget {checkpoint_url} -O /checkpoints/rsste-finetune.ckpt", shell=True, check=True)
-
-    # Debug: Print the contents of the /checkpoints directory
-    print(f"Contents of /checkpoints: {os.listdir('/checkpoints')}")
-    print("Checkpoint downloaded successfully.")
-    return True
-
-@app.function(
-    gpu="A10G",  # You can change this to "T4", "A100", etc. based on your needs
-    timeout=600,  # 10-minute timeout
-    volumes={"/checkpoints": volume}
-)
-def download_repository():
-    """Download the RS-STE repository to the volume."""
-    import subprocess
-    import os
-    import time
-
-    # Create repository directory if it doesn't exist
-    repo_dir = "/checkpoints/RS-STE"
-    if os.path.exists(repo_dir):
-        print("Repository directory exists, removing it to ensure fresh clone.")
-        subprocess.run(
-            "rm -rf /checkpoints/RS-STE",
-            shell=True,
-            check=True
-        )
-
-    # Clone the repository
-    print("Cloning repository...")
-    subprocess.run(
-        "git clone https://github.com/xunmengshe2x/rs-ste /checkpoints/RS-STE",
-        shell=True,
-        check=True
-    )
-    
-    # Verify the repository was cloned successfully
-    if not os.path.exists("/checkpoints/RS-STE"):
-        raise FileNotFoundError("Repository directory was not created after git clone")
-    
-    # List contents to verify
-    print(f"Repository contents: {os.listdir('/checkpoints/RS-STE')}")
-    
-    # Verify model directory exists
-    if not os.path.exists("/checkpoints/RS-STE/model"):
-        raise FileNotFoundError("Model directory not found in cloned repository")
-    
-    # List model directory contents
-    print(f"Model directory contents: {os.listdir('/checkpoints/RS-STE/model')}")
-    
-    # Verify utils.py exists
-    utils_path = "/checkpoints/RS-STE/model/utils.py"
-    if not os.path.exists(utils_path):
-        raise FileNotFoundError(f"utils.py not found at {utils_path}")
-    
-    # Create the logger functions directly in the repository
-    with open(utils_path, "r") as f:
-        utils_content = f.read()
-    
-    # Check if get_logger is already in the file
-    if "def get_logger" not in utils_content:
-        print("Adding logger functions to utils.py")
-        # Add the logger functions to utils.py
-        with open(utils_path, "w") as f:
-            f.write(utils_content.replace("import torch\nimport torch.nn as nn", "import torch\nimport torch.nn as nn\nimport logging\nimport os\n\ndef get_logger(name, rank=0):\n    \"\"\"\n    Create a logger for the specified name.\n    \n    Args:\n        name (str): Logger name\n        rank (int, optional): Process rank for distributed training. Defaults to 0.\n        \n    Returns:\n        logging.Logger: Configured logger instance\n    \"\"\"\n    logger = logging.getLogger(name)\n    logger.setLevel(logging.INFO if rank == 0 else logging.WARNING)\n    \n    # Create console handler\n    ch = logging.StreamHandler()\n    ch.setLevel(logging.INFO if rank == 0 else logging.WARNING)\n    \n    # Create formatter\n    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')\n    ch.setFormatter(formatter)\n    \n    # Add handler to logger\n    logger.addHandler(ch)\n    \n    return logger\n\ndef log_config(config, logger=None):\n    \"\"\"\n    Log configuration parameters.\n    \n    Args:\n        config: Configuration object or dictionary\n        logger (logging.Logger, optional): Logger to use. If None, print to stdout.\n    \"\"\"\n    config_str = str(config)\n    if logger is not None:\n        logger.info(f\"Configuration:\\n{config_str}\")\n    else:\n        print(f\"Configuration:\\n{config_str}\")\n"))
-    
-    # Verify the file was updated
-    with open(utils_path, "r") as f:
-        updated_content = f.read()
-        if "def get_logger" in updated_content and "def log_config" in updated_content:
-            print("Successfully added logger functions to utils.py")
-        else:
-            print("WARNING: Failed to add logger functions to utils.py")
-    
-    print("Repository downloaded and patched successfully.")
-    return True
-
 # Define a web endpoint for inference with base64-encoded file
 @app.function(
     gpu="A10G",
@@ -347,13 +250,98 @@ async def inference_api_with_file(request: Request):
                 logger.error(f"Synth pair config not found at {synth_pair_path}")
                 return {"error": f"Synth pair config not found at {synth_pair_path}"}
             
+            # Load and patch configs with absolute paths
             decoder_config = OmegaConf.load(decoder_config_path)
             config = OmegaConf.load(synth_pair_path)
+            
+            # Patch relative paths in configs to absolute paths
+            def fix_paths_in_config(cfg, base_path):
+                """Recursively fix relative paths in config to absolute paths"""
+                if isinstance(cfg, dict):
+                    for key, value in cfg.items():
+                        if isinstance(value, (dict, list)):
+                            fix_paths_in_config(value, base_path)
+                        elif isinstance(value, str) and (
+                            "data/" in value or 
+                            value.endswith(".txt") or 
+                            value.endswith(".pkl") or 
+                            value.endswith(".yaml")
+                        ):
+                            # Check if it's a relative path
+                            if not value.startswith("/"):
+                                # Make it absolute
+                                abs_path = os.path.join(base_path, value)
+                                logger.info(f"Converting path: {value} -> {abs_path}")
+                                cfg[key] = abs_path
+                elif isinstance(cfg, list):
+                    for i, item in enumerate(cfg):
+                        if isinstance(item, (dict, list)):
+                            fix_paths_in_config(item, base_path)
+                        elif isinstance(item, str) and (
+                            "data/" in item or 
+                            item.endswith(".txt") or 
+                            item.endswith(".pkl") or 
+                            item.endswith(".yaml")
+                        ):
+                            # Check if it's a relative path
+                            if not item.startswith("/"):
+                                # Make it absolute
+                                abs_path = os.path.join(base_path, item)
+                                logger.info(f"Converting path: {item} -> {abs_path}")
+                                cfg[i] = abs_path
+            
+            # Fix paths in both configs
+            fix_paths_in_config(decoder_config, "/checkpoints/RS-STE")
+            fix_paths_in_config(config, "/checkpoints/RS-STE")
+            
+            # Specifically check and fix the alphabet path
+            if hasattr(config.model.params, 'alphabet') and not config.model.params.alphabet.startswith('/'):
+                alphabet_path = config.model.params.alphabet
+                abs_alphabet_path = os.path.join("/checkpoints/RS-STE", alphabet_path)
+                logger.info(f"Converting alphabet path: {alphabet_path} -> {abs_alphabet_path}")
+                config.model.params.alphabet = abs_alphabet_path
+                
+                # Verify the alphabet file exists
+                if not os.path.exists(abs_alphabet_path):
+                    logger.error(f"Alphabet file not found at {abs_alphabet_path}")
+                    # List the directory contents to help debug
+                    alphabet_dir = os.path.dirname(abs_alphabet_path)
+                    if os.path.exists(alphabet_dir):
+                        logger.info(f"Contents of alphabet directory: {os.listdir(alphabet_dir)}")
+                    else:
+                        logger.error(f"Alphabet directory not found: {alphabet_dir}")
+                    return {"error": f"Alphabet file not found at {abs_alphabet_path}"}
+            
+            # Set decoder config and checkpoint path
             config.model.params.decoder_config = decoder_config.model
             config.model.params.ckpt_path = "/checkpoints/rsste-finetune.ckpt"
+            
+            # Log the patched configs
+            logger.info(f"Patched config: {OmegaConf.to_yaml(config)}")
         except Exception as e:
-            logger.error(f"Error loading configs: {str(e)}")
-            return {"error": f"Error loading configs: {str(e)}"}
+            logger.error(f"Error loading or patching configs: {str(e)}")
+            return {"error": f"Error loading or patching configs: {str(e)}"}
+        
+        # Patch the StrLabelConverter class to handle relative paths
+        try:
+            # Monkey patch the StrLabelConverter.__init__ method to handle relative paths
+            from model.utils import StrLabelConverter
+            original_init = StrLabelConverter.__init__
+            
+            def patched_init(self, alphabet, max_text_len, start_id):
+                # If alphabet is a relative path, make it absolute
+                if isinstance(alphabet, str) and not alphabet.startswith('/'):
+                    alphabet = os.path.join("/checkpoints/RS-STE", alphabet)
+                    logger.info(f"Using absolute alphabet path: {alphabet}")
+                
+                # Call the original init with the fixed path
+                original_init(self, alphabet, max_text_len, start_id)
+            
+            # Apply the monkey patch
+            StrLabelConverter.__init__ = patched_init
+            logger.info("Patched StrLabelConverter.__init__ to handle relative paths")
+        except Exception as e:
+            logger.warning(f"Could not patch StrLabelConverter: {str(e)}")
         
         # Initialize model
         try:
@@ -361,10 +349,13 @@ async def inference_api_with_file(request: Request):
             model.eval()
         except Exception as e:
             logger.error(f"Error initializing model: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {"error": f"Error initializing model: {str(e)}"}
         
         # Create a simple dataset for inference
         try:
+            # Patch the InferenceDataset class to handle relative paths
             from data.dataset import InferenceDataset
             
             # Create a temporary annotation file with the input image and text prompt
@@ -378,6 +369,8 @@ async def inference_api_with_file(request: Request):
             dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
         except Exception as e:
             logger.error(f"Error creating dataset: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {"error": f"Error creating dataset: {str(e)}"}
         
         # Run inference
@@ -417,6 +410,8 @@ async def inference_api_with_file(request: Request):
                         Image.fromarray(edited_img).save(output_path)
         except Exception as e:
             logger.error(f"Error during inference: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {"error": f"Error during inference: {str(e)}"}
 
         # Verify the output file exists
