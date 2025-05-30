@@ -1,0 +1,9 @@
+trainer:
+  accelerator: ddp
+  gpus: 0,1,2,3
+
+logger:
+  target: pytorch_lightning.loggers.TestTubeLogger
+  params:
+    name: testtube
+    save_dir: None
