@@ -26,7 +26,7 @@ image = modal.Image.debian_slim().pip_install(
 image = image.apt_install("ffmpeg", "wget", "git")
 
 # Create a Modal volume to store model files
-volume = modal.Volume.from_name("rs-ste-models", create_if_missing=True)
+volume = modal.Volume.from_name("rs-ste-models-2", create_if_missing=True)
 
 # Create a Modal app
 app = modal.App("rs-ste-inference", image=image)
