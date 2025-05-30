@@ -2,7 +2,7 @@ model:
   base_learning_rate: 4.5e-06
   target: model.decoder.VQModel_Decoder
   params:
-    ckpt_path: weights/decoder.ckpt
+    ckpt_path: /checkpoints/rsste-finetune.ckpt
     embed_dim: 3
     ddconfig:
       double_z: false
