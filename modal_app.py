@@ -76,7 +76,7 @@ def download_repository():
 
     # Clone the repository
     subprocess.run(
-        "git clone https://github.com/ZhengyaoFang/RS-STE.git",
+        "git clone https://github.com/xunmengshe2x/rs-ste",
         shell=True,
         check=True,
         cwd="/checkpoints"
