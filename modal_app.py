@@ -16,7 +16,7 @@ image = modal.Image.debian_slim().pip_install(
     "torchaudio==0.12.1",
     extra_index_url="https://download.pytorch.org/whl/cu113",
 ).pip_install(
-    "numpy==1.19.2",
+    "numpy>=1.21.0",  # Updated to be compatible with Python 3.10
     "Pillow==9.5.0",
     "torchmetrics==0.5",
     "albumentations==0.4.3",
