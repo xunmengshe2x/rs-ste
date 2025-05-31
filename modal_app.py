@@ -146,8 +146,8 @@ async def inference_with_file(request: Request):
         shutil.rmtree('/model/rs-ste')
         shutil.rmtree('/model/RS-STE')
         shutil.rmtree('/model/RS-STE_40572979_1748687288_8438')
-        shutil.rmtree('RS-STE_52f102ca_1748687814_6494')
-        shutil.rmtree('RS-STE_fb3923f3_1748686949_8539')
+        shutil.rmtree('/model/RS-STE_52f102ca_1748687814_6494')
+        shutil.rmtree('/model/RS-STE_fb3923f3_1748686949_8539')
     
     
     # Get the current working directory
