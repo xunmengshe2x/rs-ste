@@ -173,7 +173,7 @@ async def inference_with_file(request: Request):
     annotation_data = {
         "image1_paths": [input_path],
         "image2_paths": [],
-        "image1_rec": [""],  # Will be recognized by the model
+        "image1_rec": ["MAIL"],  # Will be recognized by the model
         "image2_rec": [target_text]  # Target text to edit into the image
     }
     annotation_file = os.path.join(annotation_dir, "temp_inference.pkl")
