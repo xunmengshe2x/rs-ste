@@ -138,7 +138,7 @@ async def inference_with_file(request: Request):
             print(f"  - Directory {path} does not exist")
     
     # Check contents of /model before any operations
-    print_directory_contents("/model")
+    #print_directory_contents("/model")
     
     # Remove existing repository if it exists
     if os.path.exists("/model/rs-ste"):
@@ -149,6 +149,8 @@ async def inference_with_file(request: Request):
         shutil.rmtree('/model/RS-STE_52f102ca_1748687814_6494')
         shutil.rmtree('/model/RS-STE_fb3923f3_1748686949_8539')
     
+    print_directory_contents("/model")
+
     
     # Get the current working directory
     current_directory = os.getcwd()
