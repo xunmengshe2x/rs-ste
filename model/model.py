@@ -39,7 +39,7 @@ class RSSTE(pl.LightningModule):
     def __init__(self,
                  transformer_config,
                  decoder_config,
-                 alphabet = 'data/alphabet/en.txt',
+                 alphabet = '/model/rs-ste/data/alphabet/en.txt',
                  ckpt_path = None,
                  max_text_len = 32,
                  n_embd = 384,
