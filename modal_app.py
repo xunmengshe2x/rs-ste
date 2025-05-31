@@ -203,9 +203,14 @@ async def inference_with_file(request: Request):
         config.model.params.ckpt_path = checkpoint_path
         
         # FIX: Explicitly set n_embd to 768 to match the checkpoint dimensions
-        config.model.params.n_embd = 768
-        config.model.params.transformer_config.params.n_embd = 768
+        #config.model.params.n_embd = 768
+        #config.model.params.transformer_config.params.n_embd = 768
 
+        # Change from 768 to 384 to match the config file
+        config.model.params.n_embd = 384
+        config.model.params.transformer_config.params.n_embd = 384
+
+        
         # Initialize model
         model = instantiate_from_config(config.model).to('cuda')
         model.eval()
