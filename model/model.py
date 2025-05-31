@@ -42,7 +42,7 @@ class RSSTE(pl.LightningModule):
                  alphabet = '/model/rs-ste/data/alphabet/en.txt',
                  ckpt_path = None,
                  max_text_len = 32,
-                 n_embd = 384,
+                 n_embd = 768,
                  training_mode='synth_pair',
                  ):
         super().__init__()
