@@ -55,20 +55,24 @@ def download_model():
     os.makedirs("/model", exist_ok=True)
     
     # Check if model is already downloaded
-    if os.path.exists("/model/rsste_finetune.ckpt"):
+    if os.path.exists("/model/rsste-finetune.ckpt"):
         print("Model already downloaded.")
         return
     
-    # Download the model checkpoint
-    model_url = "https://example.com/path/to/rsste_finetune.ckpt"  # Replace with actual URL
-    subprocess.run(f"wget {model_url} -P /model", shell=True, check=True)
+    # Clone the repository to get config files
+    if not os.path.exists("/model/rs-ste"):
+        print("Cloning repository for config files...")
+        subprocess.run(
+            "git clone https://github.com/xunmengshe2x/rs-ste.git",
+            shell=True,
+            check=True,
+            cwd="/model"
+        )
     
-    # Download config files
-    vqgan_config_url = "https://example.com/path/to/vqgan.yaml"  # Replace with actual URL
-    transformer_config_url = "https://example.com/path/to/transformer.yaml"  # Replace with actual URL
-    
-    subprocess.run(f"wget {vqgan_config_url} -P /model", shell=True, check=True)
-    subprocess.run(f"wget {transformer_config_url} -P /model", shell=True, check=True)
+    # Download the model checkpoint from Hugging Face
+    model_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/rsste-finetune.ckpt"
+    print(f"Downloading checkpoint from {model_url}...")
+    subprocess.run(f"wget {model_url} -O /model/rsste-finetune.ckpt", shell=True, check=True)
     
     print("Model and configs downloaded successfully.")
     return True
@@ -122,6 +126,7 @@ async def inference_with_file(request: Request):
     
     # Create directories
     model_dir = "/model"
+    repo_dir = os.path.join(model_dir, "rs-ste")
     input_dir = os.path.join(model_dir, "inputs")
     output_dir = os.path.join(model_dir, "outputs")
     annotation_dir = os.path.join(model_dir, "data/annotation")
@@ -152,15 +157,15 @@ async def inference_with_file(request: Request):
     
     try:
         # Add the repository to the Python path
-        sys.path.append("/root")
+        sys.path.append(repo_dir)
         
         # Import necessary modules
         from main import instantiate_from_config, get_obj_from_str
         
-        # Load model configurations
-        vqgan_config = os.path.join(model_dir, "vqgan.yaml")
-        transformer_config = os.path.join(model_dir, "transformer.yaml")
-        checkpoint_path = os.path.join(model_dir, "rsste_finetune.ckpt")
+        # Load model configurations from the cloned repository
+        vqgan_config = os.path.join(repo_dir, "configs/vqgan_decoder.yaml")
+        transformer_config = os.path.join(repo_dir, "configs/synth_pair.yaml")
+        checkpoint_path = os.path.join(model_dir, "rsste-finetune.ckpt")
         
         decoder_config = OmegaConf.load(vqgan_config)
         config = OmegaConf.load(transformer_config)
