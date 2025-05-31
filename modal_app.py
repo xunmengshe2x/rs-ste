@@ -122,13 +122,25 @@ async def inference_with_file(request: Request):
     # Ensure model is downloaded
     download_model.remote()
 
-        # Remove any existing repo to avoid caching issues
+
+    # Function to print directory contents
+    def print_directory_contents(path):
+        print(f"Contents of {path}:")
+        try:
+            for item in os.listdir(path):
+                print(f"  - {item}")
+        except FileNotFoundError:
+            print(f"  - Directory {path} does not exist")
+    
+    # Check contents of /model before any operations
+    print_directory_contents("/model")
+    
+    # Remove existing repository if it exists
     if os.path.exists("/model/rs-ste"):
         print(f"Removing existing repository at /model/rs-ste...")
         shutil.rmtree('/model/rs-ste')
     
-
-        # Get the current working directory
+    # Get the current working directory
     current_directory = os.getcwd()
     
     # Print the current working directory
@@ -143,11 +155,18 @@ async def inference_with_file(request: Request):
             check=True,
             cwd="/model"
         )
-
+    
+    # Check contents of /model after cloning
+    print_directory_contents("/model")
+    
+    # Get the current working directory again
     current_directory = os.getcwd()
     
     # Print the current working directory
-    print("Current Working Directory after the cloning:", current_directory)
+    print("Current Working Directory after cloning:", current_directory)
+
+
+    
     
     # Create directories
     model_dir = "/model"
