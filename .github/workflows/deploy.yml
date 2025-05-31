@@ -24,7 +24,7 @@ jobs:
           
           # Install all dependencies needed for imports in modal_app.py
           pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113
-          pip install numpy==1.19.2 Pillow==9.5.0 omegaconf
+          pip install numpy>=1.21.0 Pillow==9.5.0 omegaconf
           pip install torchmetrics==0.5 albumentations==0.4.3 pytorch-lightning==1.4.2
           pip install opencv-python tensorboard editdistance einops tqdm
           pip install pydantic>=2.0.0 typing-extensions
