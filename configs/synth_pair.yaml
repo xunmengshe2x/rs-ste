@@ -11,7 +11,7 @@ model:
         n_head: 6
         n_embd: 384
     n_embd: 384
-    alphabet:  data/alphabet/en.txt
+    alphabet:  /model/rs-ste/data/alphabet/en.txt
     max_text_len: 32
   
 data:
