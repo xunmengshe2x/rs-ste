@@ -69,7 +69,11 @@ def download_model():
         shutil.rmtree('/model/rs-ste')
     
 
+        # Get the current working directory
+    current_directory = os.getcwd()
     
+    # Print the current working directory
+    print("Current Working Directory:", current_directory)
     
     # Clone the repository to get config files
     if not os.path.exists("/model/rs-ste"):
@@ -80,6 +84,12 @@ def download_model():
             check=True,
             cwd="/model"
         )
+
+    current_directory = os.getcwd()
+    
+    # Print the current working directory
+    print("Current Working Directory after the cloning:", current_directory)
+    
     
     # Download the model checkpoint from Hugging Face
     model_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/rsste-finetune.ckpt"
