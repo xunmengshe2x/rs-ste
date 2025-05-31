@@ -55,7 +55,7 @@ def download_model():
 
     if os.path.exists("/model"):
     # Remove all files and subdirectories in the model directory
-    shutil.rmtree("/model")
+        shutil.rmtree("/model")
     
     # Create model directory if it doesn't exist
     os.makedirs("/model", exist_ok=True)
