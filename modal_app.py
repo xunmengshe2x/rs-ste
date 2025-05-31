@@ -63,32 +63,7 @@ def download_model():
         return
 
 
-    # Remove any existing repo to avoid caching issues
-    if os.path.exists("/model/rs-ste"):
-        print(f"Removing existing repository at /model/rs-ste...")
-        shutil.rmtree('/model/rs-ste')
-    
 
-        # Get the current working directory
-    current_directory = os.getcwd()
-    
-    # Print the current working directory
-    print("Current Working Directory:", current_directory)
-    
-    # Clone the repository to get config files
-    if not os.path.exists("/model/rs-ste"):
-        print("Cloning repository for config files...")
-        subprocess.run(
-            "git clone https://github.com/xunmengshe2x/rs-ste.git",
-            shell=True,
-            check=True,
-            cwd="/model"
-        )
-
-    current_directory = os.getcwd()
-    
-    # Print the current working directory
-    print("Current Working Directory after the cloning:", current_directory)
     
     
     # Download the model checkpoint from Hugging Face
@@ -145,6 +120,33 @@ async def inference_with_file(request: Request):
     
     # Ensure model is downloaded
     download_model.remote()
+
+        # Remove any existing repo to avoid caching issues
+    if os.path.exists("/model/rs-ste"):
+        print(f"Removing existing repository at /model/rs-ste...")
+        shutil.rmtree('/model/rs-ste')
+    
+
+        # Get the current working directory
+    current_directory = os.getcwd()
+    
+    # Print the current working directory
+    print("Current Working Directory:", current_directory)
+    
+    # Clone the repository to get config files
+    if not os.path.exists("/model/rs-ste"):
+        print("Cloning repository for config files...")
+        subprocess.run(
+            "git clone https://github.com/xunmengshe2x/rs-ste.git",
+            shell=True,
+            check=True,
+            cwd="/model"
+        )
+
+    current_directory = os.getcwd()
+    
+    # Print the current working directory
+    print("Current Working Directory after the cloning:", current_directory)
     
     # Create directories
     model_dir = "/model"
