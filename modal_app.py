@@ -53,11 +53,23 @@ def download_model():
     
     # Create model directory if it doesn't exist
     os.makedirs("/model", exist_ok=True)
+
+
+
     
     # Check if model is already downloaded
     if os.path.exists("/model/rsste-finetune.ckpt"):
         print("Model already downloaded.")
         return
+
+
+    # Remove any existing repo to avoid caching issues
+    if os.path.exists("/model/rs-ste"):
+        print(f"Removing existing repository at {repo_dir}...")
+        shutil.rmtree(repo_dir)
+    
+
+    
     
     # Clone the repository to get config files
     if not os.path.exists("/model/rs-ste"):
