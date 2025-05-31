@@ -300,7 +300,7 @@ class VQModel_Decoder(pl.LightningModule):
             self.init_from_ckpt(ckpt_path)
         
     def init_from_ckpt(self, path):
-        sd = torch.load(path, map_location="cpu")["state_dict"]
+        sd = torch.load(path, map_location="cpu",weights_only=False)["state_dict"]
         keys = list(sd.keys())
         new_keys = OrderedDict()
         model_state_dict = self.state_dict()
