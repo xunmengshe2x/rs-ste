@@ -53,9 +53,6 @@ def download_model():
     import os
     import shutil
 
-    if os.path.exists("/model"):
-    # Remove all files and subdirectories in the model directory
-        shutil.rmtree("/model")
     
     # Create model directory if it doesn't exist
     os.makedirs("/model", exist_ok=True)
@@ -129,6 +126,8 @@ async def inference_with_file(request: Request):
     download_model.remote()
 
 
+    
+
     # Function to print directory contents
     def print_directory_contents(path):
         print(f"Contents of {path}:")
@@ -145,6 +144,11 @@ async def inference_with_file(request: Request):
     if os.path.exists("/model/rs-ste"):
         print(f"Removing existing repository at /model/rs-ste...")
         shutil.rmtree('/model/rs-ste')
+        shutil.rmtree('/model/RS-STE')
+        shutil.rmtree('/model/RS-STE_40572979_1748687288_8438')
+        shutil.rmtree('RS-STE_52f102ca_1748687814_6494')
+        shutil.rmtree('RS-STE_fb3923f3_1748686949_8539')
+    
     
     # Get the current working directory
     current_directory = os.getcwd()
