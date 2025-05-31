@@ -173,7 +173,7 @@ async def inference_api_with_file(request: Request):
         logger.info("Repository prepared successfully")
 
         # Check for decoder checkpoint and download if needed
-        decoder_ckpt_path = f"{base_repo_dir}/weights/decoder.ckpt"
+        decoder_ckpt_path = "/checkpoints/rsste-finetune.ckpt"
         decoder_dir = os.path.dirname(decoder_ckpt_path)
         
         # Create weights directory if it doesn't exist
