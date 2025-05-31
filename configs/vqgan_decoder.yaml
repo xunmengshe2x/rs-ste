@@ -1,0 +1,19 @@
+model:
+  base_learning_rate: 4.5e-06
+  target: model.decoder.VQModel_Decoder
+  params:
+    embed_dim: 3
+    ddconfig:
+      double_z: false
+      z_channels: 3
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+      - 1
+      - 2
+      - 4
+      num_res_blocks: 2
+      attn_resolutions: []
+      dropout: 0.0

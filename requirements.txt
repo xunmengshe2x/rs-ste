@@ -1,0 +1,10 @@
+numpy==1.19.2
+Pillow==9.5.0
+torchmetrics==0.5
+albumentations==0.4.3
+pytorch-lightning==1.4.2
+opencv-python
+omegaconf
+tensorboard
+editdistance
+einops
