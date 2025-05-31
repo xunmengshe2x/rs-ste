@@ -50,6 +50,12 @@ def download_model():
     """Download RS-STE model files to the volume."""
     import os
     import subprocess
+    import os
+    import shutil
+
+    if os.path.exists("/model"):
+    # Remove all files and subdirectories in the model directory
+    shutil.rmtree("/model")
     
     # Create model directory if it doesn't exist
     os.makedirs("/model", exist_ok=True)
