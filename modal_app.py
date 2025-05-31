@@ -65,8 +65,8 @@ def download_model():
 
     # Remove any existing repo to avoid caching issues
     if os.path.exists("/model/rs-ste"):
-        print(f"Removing existing repository at {repo_dir}...")
-        shutil.rmtree(repo_dir)
+        print(f"Removing existing repository at /model/rs-ste...")
+        shutil.rmtree('/model/rs-ste')
     
 
     
