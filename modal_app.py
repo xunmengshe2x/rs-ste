@@ -105,7 +105,7 @@ async def inference_with_file(request: Request):
     import os
     import sys
     import logging
-    
+    import shutil
     # Set up logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
