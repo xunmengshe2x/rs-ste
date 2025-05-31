@@ -244,7 +244,7 @@ async def inference_api_with_file(request: Request):
         # Load configs
         try:
             from omegaconf import OmegaConf
-            decoder_config_path = "/checkpoints/RS-STE/configs/vqgan_decoder.yaml"
+            decoder_config_path = "/checkpoints/RS-STE/configs/vqgan.yaml"
             synth_pair_path = "/checkpoints/RS-STE/configs/synth_pair.yaml"
             
             if not os.path.exists(decoder_config_path):
