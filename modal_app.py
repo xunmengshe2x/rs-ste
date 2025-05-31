@@ -204,6 +204,7 @@ async def inference_with_file(request: Request):
         
         # FIX: Explicitly set n_embd to 768 to match the checkpoint dimensions
         config.model.params.n_embd = 768
+        config.model.params.transformer_config.params.n_embd = 768
 
         # Initialize model
         model = instantiate_from_config(config.model).to('cuda')
