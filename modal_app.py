@@ -48,25 +48,23 @@ app = modal.App("rs-ste", image=image)
 )
 def download_model():
     """Download RS-STE model files to the volume."""
-    import os
-    import subprocess
-    import shutil
-
     # Create model directory if it doesn't exist
     os.makedirs("/model", exist_ok=True)
 
-    # Check if model is already downloaded
-    if os.path.exists("/model/model.pth"):
-        print("Model already downloaded.")
-        return
+    # Path to the model file
+    model_path = "/model/model.pth"
 
-
+    # Check if model is already downloaded and delete it if it exists
+    if os.path.exists(model_path):
+        print("Existing model found. Deleting it...")
+        os.remove(model_path)
 
     # Download the model checkpoint from Hugging Face
     model_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/model.pth"
     print(f"Downloading checkpoint from {model_url}...")
-    subprocess.run(f"wget {model_url} -O /model/model.pth", shell=True, check=True)
-    print("Model and configs downloaded successfully.")
+    subprocess.run(f"wget {model_url} -O {model_path}", shell=True, check=True)
+    print("Model downloaded successfully.")
+
     return True
 
 def crop_and_resize(x, size, ori_size, k):
