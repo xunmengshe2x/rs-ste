@@ -47,6 +47,9 @@ app = modal.App("rs-ste", image=image)
     volumes={"/model": volume}
 )
 def download_model():
+    import os
+    import subprocess
+    import shutil
     """Download RS-STE model files to the volume."""
     # Create model directory if it doesn't exist
     os.makedirs("/model", exist_ok=True)
