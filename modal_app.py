@@ -58,9 +58,9 @@ def download_model():
     model_path = "/model/model.pth"
 
     # Check if model is already downloaded and delete it if it exists
-    if os.path.exists(model_path):
-        print("Existing model found. Deleting it...")
-        os.remove(model_path)
+    #if os.path.exists(model_path):
+        #print("Existing model found. Deleting it...")
+        #os.remove(model_path)
 
     # Download the model checkpoint from Hugging Face
     model_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/model.pth"
