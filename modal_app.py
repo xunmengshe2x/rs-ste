@@ -56,12 +56,12 @@ def download_model():
     os.makedirs("/model", exist_ok=True)
 
     # Check if model is already downloaded
-    if os.path.exists("/model/rsste-finetune.ckpt"):
+    if os.path.exists("/model/model.pth"):
         print("Model already downloaded.")
         return
 
     # Download the model checkpoint from Hugging Face
-    model_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/rsste-finetune.ckpt"
+    model_url = "https://huggingface.co/v4mmko/RS-STE/blob/main/model.pth"
     print(f"Downloading checkpoint from {model_url}...")
     subprocess.run(f"wget {model_url} -O /model/rsste-finetune.ckpt", shell=True, check=True)
     print("Model and configs downloaded successfully.")
@@ -193,7 +193,7 @@ async def inference_with_file(request: Request):
         # Load model configurations from the cloned repository
         vqgan_config = os.path.join(repo_dir, "configs/vqgan_decoder.yaml")
         transformer_config = os.path.join(repo_dir, "configs/synth_pair.yaml")
-        checkpoint_path = os.path.join(model_dir, "rsste-finetune.ckpt")
+        checkpoint_path = os.path.join(model_dir, "model.pth")
 
         decoder_config = OmegaConf.load(vqgan_config)
         config = OmegaConf.load(transformer_config)
@@ -203,8 +203,8 @@ async def inference_with_file(request: Request):
         config.model.params.ckpt_path = checkpoint_path
         
         # FIX: Explicitly set n_embd to 768 to match the checkpoint dimensions
-        config.model.params.n_embd = 768
-        config.model.params.transformer_config.params.n_embd = 768
+        #config.model.params.n_embd = 768
+        #config.model.params.transformer_config.params.n_embd = 768
 
         # Change from 768 to 384 to match the config file
         #config.model.params.n_embd = 384
