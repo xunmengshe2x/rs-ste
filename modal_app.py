@@ -60,8 +60,10 @@ def download_model():
         print("Model already downloaded.")
         return
 
+
+
     # Download the model checkpoint from Hugging Face
-    model_url = "https://huggingface.co/v4mmko/RS-STE/blob/main/model.pth"
+    model_url = "https://huggingface.co/v4mmko/RS-STE/resolve/main/model.pth"
     print(f"Downloading checkpoint from {model_url}...")
     subprocess.run(f"wget {model_url} -O /model/model.pth", shell=True, check=True)
     print("Model and configs downloaded successfully.")
