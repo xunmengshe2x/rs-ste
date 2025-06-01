@@ -117,7 +117,7 @@ async def inference_with_file(request: Request):
         return {"error": "Missing required parameters: target_text and image_base64"}
 
     # Ensure model is downloaded
-    download_model.remote()
+    #download_model.remote()
 
     # Function to print directory contents
     def print_directory_contents(path):
